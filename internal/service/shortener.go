@@ -21,7 +21,7 @@ type InMemoryShortener struct {
 	store *storage.InMemoryStore
 }
 
-func NewInMemoryShortener(store *storage.InMemoryStore) *InMemoryShortener {
+func NewInMemoryShortener(store *storage.InMemoryStore) Shortener {
 	return &InMemoryShortener{store: store}
 }
 
@@ -34,7 +34,6 @@ func (s *InMemoryShortener) Shorten(ctx context.Context, longURL string) (string
 	}
 	id := s.store.NextID()
 	code := encoding.Base62Encode(id)
-	println(code)
 	s.store.SaveMapping(code, longURL)
 	return code, nil
 }

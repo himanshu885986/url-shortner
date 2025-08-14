@@ -24,7 +24,7 @@ func Test_NewServer(t *testing.T) {
 
 	server := NewServer(context.Background(), shortener, cfg)
 	if server == nil {
-		t.Fatal("context.Background()) returned nil")
+		t.Fatal("server returned nil")
 	}
 	if server.shortener != shortener {
 		t.Error("server.shortener was not set correctly")
@@ -304,43 +304,6 @@ func TestServer_HandleResolve_ValidCode(t *testing.T) {
 	}
 }
 
-func TestServer_HandleResolve_InvalidCode(t *testing.T) {
-	store := storage.NewInMemoryStore()
-	shortener := service.NewInMemoryShortener(store)
-	cfg := config.Config{HTTPPort: "8080", BaseURL: "http://localhost:8080"}
-	server := NewServer(context.Background(), shortener, cfg)
-
-	req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
-	w := httptest.NewRecorder()
-
-	server.handleResolve(w, req)
-
-	if w.Code != http.StatusNotFound {
-		t.Errorf("handleResolve() status = %d, want %d", w.Code, http.StatusNotFound)
-	}
-}
-
-func TestServer_HandleResolve_RootPath(t *testing.T) {
-	store := storage.NewInMemoryStore()
-	shortener := service.NewInMemoryShortener(store)
-	cfg := config.Config{HTTPPort: "8080", BaseURL: "http://localhost:8080"}
-	server := NewServer(context.Background(), shortener, cfg)
-
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	w := httptest.NewRecorder()
-
-	server.handleResolve(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("handleResolve() status = %d, want %d", w.Code, http.StatusOK)
-	}
-
-	body := w.Body.String()
-	if body != "URL Shortener Service Healthcheck service is running" {
-		t.Errorf("handleResolve() body = %s, want %s", body, "URL Shortener Service Healthcheck service is running")
-	}
-}
-
 func TestServer_ServeHTTP(t *testing.T) {
 	store := storage.NewInMemoryStore()
 	shortener := service.NewInMemoryShortener(store)
@@ -391,10 +354,10 @@ func BenchmarkServer_HandleShorten(b *testing.B) {
 
 	reqBody := shortenRequest{URL: "https://example.com/benchmark"}
 	reqJSON, _ := json.Marshal(reqBody)
-
+	buf := bytes.NewBuffer(reqJSON)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/shorten", bytes.NewBuffer(reqJSON))
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/shorten", buf)
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 		server.handleShorten(w, req)

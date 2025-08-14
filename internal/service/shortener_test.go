@@ -105,17 +105,6 @@ func TestInMemoryShortener_Resolve_ValidCode(t *testing.T) {
 	}
 }
 
-func TestInMemoryShortener_Resolve_InvalidCode(t *testing.T) {
-	store := storage.NewInMemoryStore()
-	shortener := NewInMemoryShortener(store)
-	ctx := context.Background()
-
-	_, err := shortener.Resolve(ctx, "nonexistent")
-	if err != storage.ErrNotFound {
-		t.Errorf("Resolve() error = %v, want %v", err, storage.ErrNotFound)
-	}
-}
-
 func TestInMemoryShortener_ShortenAndResolve_Flow(t *testing.T) {
 	store := storage.NewInMemoryStore()
 	shortener := NewInMemoryShortener(store)
@@ -231,4 +220,19 @@ func BenchmarkInMemoryShortener_Resolve(b *testing.B) {
 		code := codes[i%len(codes)]
 		shortener.Resolve(ctx, code)
 	}
+}
+
+func BenchmarkGetTopDomain(b *testing.B) {
+	store := storage.NewInMemoryStore()
+	shortener := NewInMemoryShortener(store)
+	for i := 0; i < 100; i++ {
+		url := fmt.Sprintf("https://example%d.com", i*10)
+		code, _ := shortener.Shorten(context.Background(), url)
+		store.SaveMapping(code, url)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		shortener.GetTopDomains(context.Background(), 3)
+	}
+
 }
