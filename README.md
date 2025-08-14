@@ -1,4 +1,4 @@
-# URL Shortener (Go, In-Memory(can be extended to use redis as caching mechanism))
+# URL Shortener (Go, In-Memory)
 
 ## Run
 
@@ -24,7 +24,7 @@ PORT=8080 BASE_URL=http://localhost:8080 go run ./cmd/server
 - Base62 codes from a monotonic counter.
 
 
-## Dockerfile is written for containerizing the application into an image stored in my dockerhub
+## Dockerfile
 - Use Below commands to run pull the image and run:
   - docker pull himanshu885986/url-shortener:latest
   - docker run -p 8080:8080 url-shortener
